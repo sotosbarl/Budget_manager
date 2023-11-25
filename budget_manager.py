@@ -109,11 +109,15 @@ class BudgetManagementApp:
         balance_values = [balance for _, balance, _ in self.history]
         descriptions = [description for _, _, description in self.history]
         numeric_dates = np.arange(len(dates))
+        selected_dates = dates[::5]
 
         fig, ax = plt.subplots()
         ax.plot(numeric_dates, balance_values, marker='o')
-        ax.set_xticks(numeric_dates)
-        ax.set_xticklabels([date.strftime("%Y-%m-%d") for date in dates], rotation=45, ha="right")
+        tick_locations = np.linspace(0, numeric_dates[-1], len(selected_dates))
+        ax.set_xticks(tick_locations)
+
+        # ax.set_xticks(numeric_dates)
+        ax.set_xticklabels([date.strftime("%Y-%m-%d") for date in selected_dates], rotation=45, ha="right")
         ax.set_xlabel("Date")
         ax.set_ylabel("Balance  €")
         ax.set_title("Balance History")
@@ -175,6 +179,13 @@ class BudgetManagementApp:
         total_expenses = 0
         total_income = 0
 
+        current_date = datetime.now()
+
+        # Extract month and year from the current date
+        current_month = current_date.strftime('%B')
+
+        current_year = current_date.year
+
         for (year, month), expenses in expenses_by_month.items():
             if (year, month) in income_by_month:
                 income = income_by_month[(year, month)]
@@ -182,7 +193,16 @@ class BudgetManagementApp:
 
         for (year, month), (expenses, income) in combined_data.items():
             month_name = calendar.month_name[month]
-            net = income - expenses
+
+            
+            if month_name==current_month and year == current_year or count<=2:
+                efka_money = 0
+            
+            else:
+                efka_money = 150
+
+            expenses -=   efka_money    
+            net = income - expenses - efka_money
             if net>0:
                 color = 'green'
             elif net<0:
@@ -199,32 +219,52 @@ class BudgetManagementApp:
 
             text1 = f" Expenses: {expenses:.2f}€       "
             text2 = f"Income: {income:.2f}€        "
+            text3 = f"ΕΦΚΑ: {efka_money:.2f}€        "
 
-            text3 = f"   Net: {net:.2f}€\n"
+            text4 = f"   Net: {net:.2f}€\n"
 
             # self.output_text.insert(tk.END,text,"black")
             self.output_text.insert(tk.END,text1,"red")
             self.output_text.insert(tk.END,text2,"green")
+            self.output_text.insert(tk.END,text3)
+
 
             arrow_symbol = "→"
             self.output_text.insert(tk.END, arrow_symbol, "center")
-            self.output_text.insert(tk.END,text3,color)
+            self.output_text.insert(tk.END,text4,color)
             self.output_text.insert(tk.END, "\n")
 
-            # print(f"{month_name} {year}: Expenses: €{expenses:.2f} | Income: €{income:.2f} | Net: €{net:.2f}")
-            total_expenses +=expenses
-            total_income +=income
+            
+
+            #skip current month from mean expenses calculation....
+
+
+            if month_name==current_month and year == current_year:
+                continue
+
+            #skip first two months for counting....
+            if count!=0 and count!=1:
+
+                
+
+                total_expenses += expenses
+                total_income +=income
+
+            
             count +=1
 
-        mean_monthly_expenses = total_expenses / count
-        mean_monthly_income = total_income / count
+            
+        print('c',count)
+        print('ex',total_expenses)
+
+        mean_monthly_expenses = total_expenses / (count-2)
 
         self.output_text.insert(tk.END,"\n")
         self.output_text.insert(tk.END,"\n")
 
 
         self.output_text.insert(tk.END,f"Mean monthly expenses: {mean_monthly_expenses}\n")
-        self.output_text.insert(tk.END,f"Mean monthly income: {mean_monthly_income}\n")
+        #self.output_text.insert(tk.END,f"Mean monthly income: {mean_monthly_income}\n")
 
 
 
