@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import mplcursors
 import numpy as np
 import calendar
-from PIL import Image, ImageTk  # Import the necessary modules
+from PIL import Image
+from PIL import ImageTk  
 
 class BudgetManagementApp:
     def __init__(self):
